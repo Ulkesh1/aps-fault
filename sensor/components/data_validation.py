@@ -27,33 +27,47 @@ class DataValidation:
         except Exception as e:
             raise SensorException(e, sys)
 
-    def validate_number_of_columns(self,dataframe:pd.DataFrame)->bool:
+    def validate_number_of_columns(self, dataframe: DataFrame) -> bool:
+        """
+
+        :param dataframe:
+        :return: True if required columns present
+        """
         try:
-            number_of_columns = len(self._schema_config["columns"])
-            logging.info(f"Required number of columns: {number_of_columns}")
-            logging.info(f"Data frame has columns: {len(dataframe.columns)}")
-            if len(dataframe.columns)==number_of_columns:
-                return True
-            return False
+            status = len(dataframe.columns) == len(self._schema_config["columns"])
+
+            logging.info(f"Is required column present: [{status}]")
+
+            return status
+
         except Exception as e:
-            raise SensorException(e,sys)
+            raise SensorException(e, sys)
 
-    def is_numerical_column_exist(self,dataframe:pd.DataFrame)->bool:
+    def is_numerical_column_exist(self, df: DataFrame) -> bool:
+        """
+        This function check numerical column is present in dataframe or not
+        :param df:
+        :return: True if all column presents else False
+        """
         try:
-            numerical_columns = self._schema_config["numerical_columns"]
-            dataframe_columns = dataframe.columns
+            dataframe_columns = df.columns
 
-            numerical_column_present = True
+            status = True
+
             missing_numerical_columns = []
-            for num_column in numerical_columns:
-                if num_column not in dataframe_columns:
-                    numerical_column_present=False
-                    missing_numerical_columns.append(num_column)
-            
-            logging.info(f"Missing numerical columns: [{missing_numerical_columns}]")
-            return numerical_column_present
+
+            for column in self._schema_config["numerical_columns"]:
+                if column not in dataframe_columns:
+                    status = False
+
+                    missing_numerical_columns.append(column)
+
+            logging.info(f"Missing numerical column: {missing_numerical_columns}")
+
+            return status
+
         except Exception as e:
-            raise SensorException(e,sys)
+            raise SensorException(e, sys) from e
 
     @staticmethod
     def read_data(file_path) -> DataFrame:
@@ -99,52 +113,83 @@ class DataValidation:
         except Exception as e:
             raise SensorException(e, sys) from e
 
-    def initiate_data_validation(self)->DataValidationArtifact:
-        try:
-            error_message = ""
-            train_file_path = self.data_ingestion_artifact.trained_file_path
-            test_file_path = self.data_ingestion_artifact.test_file_path
-
-            #Reading data from train and test file location
-            train_dataframe = DataValidation.read_data(train_file_path)
-            test_dataframe = DataValidation.read_data(test_file_path)
-
-            #Validate number of columns
-            status = self.validate_number_of_columns(dataframe=train_dataframe)
-            if not status:
-                error_message=f"{error_message}Train dataframe does not contain all columns.\n"
-            status = self.validate_number_of_columns(dataframe=test_dataframe)
-            if not status:
-                error_message=f"{error_message}Test dataframe does not contain all columns.\n"
+    def initiate_data_validation(self) -> DataValidationArtifact:
+        """
+        Method Name :   initiate_data_validation
+        Description :   This method initiates the data validation component for the pipeline
         
+        Output      :   Returns bool value based on validation results
+        On Failure  :   Write an exception log and then raise an exception
+        
+        Version     :   1.2
+        Revisions   :   moved setup to cloud
+        """
+        try:
+            validation_error_msg = ""
 
-            #Validate numerical columns
+            logging.info("Starting data validation")
 
-            status = self.is_numerical_column_exist(dataframe=train_dataframe)
+            train_df = DataValidation.read_data(
+                file_path=self.data_ingestion_artifact.trained_file_path
+            )
+
+            test_df = DataValidation.read_data(
+                file_path=self.data_ingestion_artifact.test_file_path
+            )
+
+            status = self.validate_number_of_columns(dataframe=train_df)
+
+            logging.info(
+                f"All required columns present in training dataframe: {status}"
+            )
+
             if not status:
-                error_message=f"{error_message}Train dataframe does not contain all numerical columns.\n"
-            
-            status = self.is_numerical_column_exist(dataframe=test_dataframe)
-            if not status:
-                error_message=f"{error_message}Test dataframe does not contain all numerical columns.\n"
-            
-            if len(error_message)>0:
-                raise Exception(error_message)
+                validation_error_msg += f"Columns are missing in training dataframe."
 
-            #Let check data drift
-            status = self.detect_dataset_drift(reference_df=train_dataframe,current_df=test_dataframe)
+            status = self.validate_number_of_columns(dataframe=test_df)
+
+            logging.info(f"All required columns present in testing dataframe: {status}")
+
+            if not status:
+                validation_error_msg += f"Columns are missing in test dataframe."
+
+            status = self.is_numerical_column_exist(df=train_df)
+
+            if not status:
+                validation_error_msg += (
+                    f"Numerical columns are missing in training dataframe."
+                )
+
+            status = self.is_numerical_column_exist(df=test_df)
+
+            if not status:
+                validation_error_msg += (
+                    f"Numerical columns are missing in test dataframe."
+                )
+
+            validation_status = len(validation_error_msg) == 0
+
+            if validation_status:
+                drift_status = self.detect_dataset_drift(train_df, test_df)
+
+                if drift_status:
+                    logging.info(f"Drift detected.")
+
+            else:
+                logging.info(f"Validation_error: {validation_error_msg}")
 
             data_validation_artifact = DataValidationArtifact(
-                validation_status=status,
+                validation_status=validation_status,
                 valid_train_file_path=self.data_ingestion_artifact.trained_file_path,
                 valid_test_file_path=self.data_ingestion_artifact.test_file_path,
-                invalid_train_file_path=None,
-                invalid_test_file_path=None,
+                invalid_train_file_path=self.data_validation_config.invalid_train_file_path,
+                invalid_test_file_path=self.data_validation_config.invalid_test_file_path,
                 drift_report_file_path=self.data_validation_config.drift_report_file_path,
             )
 
             logging.info(f"Data validation artifact: {data_validation_artifact}")
 
             return data_validation_artifact
+
         except Exception as e:
-            raise SensorException(e,sys)
+            raise SensorException(e, sys) from e

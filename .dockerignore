@@ -1,4 +1,8 @@
-artifact
-saved_models
-venv
-.git
+artifacts
+demo
+logs
+infrastructure
+sensor.egg-info
+LICENSE
+README.md
+

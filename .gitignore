@@ -2,12 +2,20 @@
 __pycache__/
 *.py[cod]
 *$py.class
-artifact
-saved_models
-.vscode
+artifact/
 # C extensions
 *.so
 
+artifacts
+
+.idea
+
+demotest.py
+sensor/logs
+
+.terraform.lock.hcl
+
+.terraform
 
 # Distribution / packaging
 .Python

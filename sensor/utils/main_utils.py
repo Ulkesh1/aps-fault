@@ -1,4 +1,4 @@
-import os
+import os.path
 import sys
 
 import dill
@@ -8,12 +8,15 @@ import yaml
 from sensor.exception import SensorException
 from sensor.logger import logging
 
-def read_yaml_file(file_path:str)->dict:
+
+def read_yaml_file(file_path: str) -> dict:
     try:
-        with open(file_path,'rb') as yaml_file:
+        with open(file_path, "rb") as yaml_file:
             return yaml.safe_load(yaml_file)
+
     except Exception as e:
-        raise SensorException(e,sys) 
+        raise SensorException(e, sys) from e
+
 
 def write_yaml_file(file_path: str, content: object, replace: bool = False) -> None:
     try:
@@ -27,8 +30,9 @@ def write_yaml_file(file_path: str, content: object, replace: bool = False) -> N
             yaml.dump(content, file)
 
     except Exception as e:
-        raise SensorException(e, sys)   
-    
+        raise SensorException(e, sys)
+
+
 def load_object(file_path: str) -> object:
     logging.info("Entered the load_object method of MainUtils class")
 

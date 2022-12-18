@@ -5,7 +5,7 @@ import pandas as pd
 from imblearn.combine import SMOTETomek
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import StandardScaler
 
 from sensor.constant.training_pipeline import TARGET_COLUMN
 from sensor.entity.artifact_entity import (
@@ -58,14 +58,15 @@ class DataTransformation:
         try:
             logging.info("Got numerical cols from schema config")
 
-            robust_scaler = RobustScaler()
+            standard_scaler = StandardScaler()
 
             simple_imputer = SimpleImputer(strategy="constant", fill_value=0)
+            
 
             logging.info("Initialized RobustScaler, Simple Imputer")
 
             preprocessor = Pipeline(
-                steps=[("Imputer", simple_imputer), ("RobustScaler", robust_scaler)]
+                steps=[("Imputer", simple_imputer), ("Scaler", standard_scaler)]
             )
 
             logging.info("Created preprocessor object from ColumnTransformer")
@@ -119,7 +120,7 @@ class DataTransformation:
                 "Applying preprocessing object on training dataframe and testing dataframe"
             )
 
-            input_feature_train_arr = preprocessor.fit_transform(input_feature_train_df)
+            input_feature_train_arr = preprocessor.fit_transform(input_feature_train_df,target_feature_train_df)
 
             logging.info(
                 "Used the preprocessor object to fit transform the train features"

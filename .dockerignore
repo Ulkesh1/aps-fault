@@ -1,8 +1,4 @@
-artifacts
-demo
-logs
-infrastructure
-sensor.egg-info
-LICENSE
-README.md
-
+artifact
+saved_models
+venv
+.git

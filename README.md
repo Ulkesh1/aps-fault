@@ -23,6 +23,10 @@ The problem is to reduce the cost due to unnecessary repairs. So it is required 
 2. AWS EC2
 3. AWS ECR
 4. Git Actions
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6e52aa729b67af6179bf1090a88f1177f18df979
 
 ## Data Collections
 ![image](https://user-images.githubusercontent.com/57321948/193536736-5ccff349-d1fb-486e-b920-02ad7974d089.png)
@@ -30,4 +34,7 @@ The problem is to reduce the cost due to unnecessary repairs. So it is required 
 
 ## Project Archietecture
 ![image](https://user-images.githubusercontent.com/57321948/193536768-ae704adc-32d9-4c6c-b234-79c152f756c5.png)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 6e52aa729b67af6179bf1090a88f1177f18df979

@@ -63,8 +63,6 @@ The problem is to reduce the cost due to unnecessary repairs. So it is required 
 3. AWS ECR
 4. Git Actions
 
-
-
 ## Data Collections
 
 ![image](https://user-images.githubusercontent.com/57321948/193536736-5ccff349-d1fb-486e-b920-02ad7974d089.png)
